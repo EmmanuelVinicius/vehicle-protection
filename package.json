@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "ts-node src/index.ts"
+    "start": "node src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/EmmanuelVinicius/vehicle-protection#readme",
   "dependencies": {
-    "hapi": "^18.1.0",
+    "@hapi/hapi": "^20.2.0",
     "pg": "^8.7.1",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.38",

@@ -1,8 +1,7 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class User {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -15,4 +14,18 @@ export class User {
     @Column()
     age: number;
 
+    @Column()
+    cpf: string;
+    
+    @Column()
+    isClient: boolean;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    @Column()
+    active: boolean;
 }

@@ -1,21 +1,25 @@
-import "reflect-metadata";
-import {createConnection} from "typeorm";
-import {User} from "./entity/User";
+import { Hapi } from '@hapi/hapi';
 
-createConnection().then(async connection => {
+const init: any = async () => {
+  const server: any = Hapi.server({
+    port: 3000,
+    host: 'localhost'
+  });
 
-    console.log("Inserting a new user into the database...");
-    const user = new User();
-    user.firstName = "Timber";
-    user.lastName = "Saw";
-    user.age = 25;
-    await connection.manager.save(user);
-    console.log("Saved a new user with id: " + user.id);
+  server.route({
+    method: 'GET',
+    path: '/status',
+    handler: (request, h) => {
+      return `Server running on ${server.info.uri}`;
+    }
+  });
 
-    console.log("Loading users from the database...");
-    const users = await connection.manager.find(User);
-    console.log("Loaded users: ", users);
+  await server.start();
+};
 
-    console.log("Here you can setup and run express/koa/any other framework.");
+process.on('unhandledRejection', (err) => {
+  console.log(err);
+  process.exit(1);
+});
 
-}).catch(error => console.log(error));
+init();
