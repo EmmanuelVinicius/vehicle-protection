@@ -1,4 +1,9 @@
 {
+   "type": "postgres",
+   "host": "raja.db.elephantsql.com",
+   "username": "olysrlev",
+   "password": "U36A0g7EOJaHo_hpKFlMsKwgGthKiLeC",
+   "database": "olysrlev",
    "synchronize": true,
    "logging": false,
    "entities": [

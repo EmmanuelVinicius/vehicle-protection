@@ -1,31 +1,31 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn, ManyToMany, JoinTable, OneToOne } from "typeorm";
+import { Accident } from "./Accident";
+import { Account } from "./Account";
+import { Document } from "./Document";
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    firstName: string;
+  @Column()
+  firstName: string;
 
-    @Column()
-    lastName: string;
+  @Column()
+  lastName: string;
 
-    @Column()
-    age: number;
+  @Column()
+  age: number;
 
-    @Column()
-    cpf: string;
-    
-    @Column()
-    isClient: boolean;
+  @OneToOne(() => Account)
+  @JoinColumn()
+  account: Account;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @OneToMany(() => Document, document => document.user)
+  @JoinColumn()
+  document: Document;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @Column()
-    active: boolean;
+  @ManyToMany(() => Accident)
+  @JoinTable()
+  accident: Accident
 }

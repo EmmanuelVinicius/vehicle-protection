@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, JoinTable } from "typeorm";
+import { Accident } from "./Accident";
 import { User } from "./User";
+import { Vehicle } from "./Vehicle";
 
 @Entity()
 export class Document {
@@ -9,7 +11,7 @@ export class Document {
   @Column()
   userId: number;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn()
   user: User;
 
@@ -27,4 +29,12 @@ export class Document {
 
   @Column()
   active: boolean;
+
+  @ManyToMany(() => Accident)
+  @JoinTable()
+  accident: Accident
+
+  @ManyToOne(() => Vehicle)
+  @JoinColumn()
+  vehicle: Vehicle;
 }

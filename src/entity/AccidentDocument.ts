@@ -1,17 +1,17 @@
-import { Entity, Column, OneToOne, JoinColumn } from "typeorm";
+import { Entity, Column, OneToOne, JoinColumn, PrimaryColumn } from "typeorm";
 import { Accident } from "./Accident";
 import { Document } from "./Document";
 
 @Entity()
 export class AccidentDocument {
-  @Column()
+  @PrimaryColumn()
   accidentId: number;
 
   @OneToOne(() => Accident)
   @JoinColumn()
   accident: Accident;
 
-  @Column()
+  @PrimaryColumn()
   documentId: string;
 
   @OneToOne(() => Document)

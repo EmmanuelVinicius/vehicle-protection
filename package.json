@@ -1,31 +1,39 @@
 {
-  "name": "vehicle-protection",
-  "version": "1.0.0",
-  "description": "Just a simple system about vehicle protections using Typescript, HapiJS, TypeORM, PostgresSQL and Jest",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest",
-    "start": "node src/index.ts"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/EmmanuelVinicius/vehicle-protection.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/EmmanuelVinicius/vehicle-protection/issues"
-  },
-  "homepage": "https://github.com/EmmanuelVinicius/vehicle-protection#readme",
-  "dependencies": {
-    "@hapi/hapi": "^20.2.0",
-    "pg": "^8.7.1",
-    "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.2.38",
-    "typescript": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/node": "^16.10.3",
-    "jest": "^27.2.4"
-  }
+   "name": "vehicle-protection",
+   "version": "1.0.0",
+   "description": "Just a simple system about vehicle protections using Typescript, HapiJS, TypeORM, PostgresSQL and Jest",
+   "main": "index.js",
+   "scripts": {
+      "test": "jest",
+      "start": "ts-node src/index.ts"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/EmmanuelVinicius/vehicle-protection.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/EmmanuelVinicius/vehicle-protection/issues"
+    },
+    "homepage": "https://github.com/EmmanuelVinicius/vehicle-protection#readme",
+   "dependencies": {
+      "@hapi/boom": "^9.1.4",
+      "@hapi/hapi": "^20.2.1",
+      "@hapi/joi": "^17.1.1",
+      "pg": "^8.7.1",
+      "reflect-metadata": "^0.1.10",
+      "typeorm": "0.2.38"
+   },
+   "devDependencies": {
+      "@babel/core": "^7.15.8",
+      "@babel/preset-env": "^7.15.8",
+      "@babel/preset-typescript": "^7.15.0",
+      "@types/jest": "^27.0.2",
+      "@types/node": "^8.0.29",
+      "babel-jest": "^27.3.0",
+      "jest": "^27.3.0",
+      "ts-node-dev": "^1.1.8",
+      "typescript": "3.3.3333"
+   }
 }

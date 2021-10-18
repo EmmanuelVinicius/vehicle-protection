@@ -1,4 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable } from "typeorm";
+import { Document } from "./Document";
+import { User } from "./User";
+import { Vehicle } from "./Vehicle";
 
 @Entity()
 export class Accident {
@@ -22,4 +25,16 @@ export class Accident {
 
   @Column()
   active: boolean;
+
+  @ManyToMany(() => Document)
+  @JoinTable()
+  document: Document;
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  user: User;
+
+  @ManyToMany(() => Vehicle)
+  @JoinTable()
+  vehicle: Vehicle;
 }
