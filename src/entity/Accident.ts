@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
-import { Document } from "./Document";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
 import { User } from "./User";
 import { Vehicle } from "./Vehicle";
 
@@ -7,7 +14,7 @@ import { Vehicle } from "./Vehicle";
 export class Accident {
   @PrimaryGeneratedColumn()
   id: number;
-
+  
   @Column('varchar')
   description: string;
   
@@ -19,22 +26,19 @@ export class Accident {
   
   @CreateDateColumn()
   createdAt: Date;
-
+  
   @UpdateDateColumn()
   updatedAt: Date;
-
+  
   @Column('boolean', { default: true })
   active: boolean = true;
-
-  @OneToMany(() => Document, document => document.accident)
-  @JoinTable()
-  documents: Document[];
-
+  
   @ManyToMany(() => User, document => document.accidents)
   @JoinTable()
   users: User[];
-
-  @ManyToMany(() => Vehicle, document => document.accidents,)
+  
+  @ManyToMany(() => Vehicle, document => document.accidents,
+  { nullable: false, cascade: true, onDelete: "CASCADE" })
   @JoinTable()
   vehicles: Vehicle[];
 }

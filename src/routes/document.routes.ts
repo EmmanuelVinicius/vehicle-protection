@@ -1,7 +1,6 @@
-import { internal, preconditionFailed } from '@hapi/boom';
+import { internal, notFound } from '@hapi/boom';
 import { getRepository } from 'typeorm';
 import { Document } from '../entity/Document';
-import { User } from '../entity/User';
 
 const documentRoutes = [
   {
@@ -13,7 +12,7 @@ const documentRoutes = [
     },
     handler: async (request, headers) => {
       try {
-        const documents = await getRepository(Document).find();
+        const documents = await getRepository(Document).find({ relations: ['user'] });
         
         return documents;
         
@@ -33,12 +32,11 @@ const documentRoutes = [
       try {
         const data = request.payload;
         
-        const user = await getRepository(User).findOneOrFail({ where: { id: data.user } });
-        const document = await getRepository(Document).save({ ...data, user });
+        const document = await getRepository(Document).save({ ...data });
         
         return document;
       } catch (error) {
-        return preconditionFailed(error);
+        return internal(error);
       }
     }
   },
@@ -52,11 +50,17 @@ const documentRoutes = [
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const document = await getRepository(Document).findOneOrFail(id);
+        const document = await getRepository(Document).findOne(id, { relations: ['user'] })
+        .then(res => {
+          if (typeof res == 'undefined') return notFound("doc not found");
+
+          return res;
+        });
         
         return document;
         
       } catch (error) {
+        console.log(error)
         return internal(error);
       }
     }
@@ -74,25 +78,6 @@ const documentRoutes = [
         const data = request.payload;
         
         const document = await getRepository(Document).update(id, data)
-        
-        return document;
-        
-      } catch (error) {
-        return preconditionFailed(error);
-      }
-    }
-  },
-  {
-    path: '/document/{id}',
-    method: 'DELETE',
-    config: {
-      cors: true,
-      description: 'Remove a document',
-    },
-    handler: async (request, headers) => {
-      try {
-        const id = request.params.id;
-        const document = await getRepository(Document).delete(id);
         
         return document;
         

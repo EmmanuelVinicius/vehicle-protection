@@ -1,5 +1,4 @@
-import { internal, preconditionFailed } from '@hapi/boom';
-import * as Joi from '@hapi/joi';
+import { internal, notFound } from '@hapi/boom';
 import { getRepository } from 'typeorm';
 import { Account } from '../entity/Account';
 import { User } from '../entity/User';
@@ -11,9 +10,6 @@ const accountRoutes = [
     config: {
       cors: true,
       description: 'List of all accounts',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
@@ -32,9 +28,6 @@ const accountRoutes = [
     config: {
       cors: true,
       description: 'Create an account',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
@@ -45,7 +38,7 @@ const accountRoutes = [
 
         return account;
       } catch (error) {
-        return preconditionFailed(error);
+        return internal(error);
       }
     }
   },
@@ -55,14 +48,16 @@ const accountRoutes = [
     config: {
       cors: true,
       description: 'Get only one account',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const account = await getRepository(Account).findOneOrFail({ relations: ['user'] });
+        const account = await getRepository(Account).findOne(id, { relations: ['user'] })
+        .then(res => {
+          if (typeof res == 'undefined') return notFound("account not found");
+
+          return res;
+        });
 
         return account;
         
@@ -77,9 +72,6 @@ const accountRoutes = [
     config: {
       cors: true,
       description: 'Update an account',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
@@ -94,29 +86,7 @@ const accountRoutes = [
         return internal(error);
       }
     }
-  },
-  {
-    path: '/account/{id}',
-    method: 'DELETE',
-    config: {
-      cors: true,
-      description: 'Remove an account',
-      validate: {
-        failAction: () => internal(),
-      }
-    },
-    handler: async (request, headers) => {
-      try {
-        const id = request.params.id;
-        const account = await getRepository(Account).delete(id);
-        
-        return account;
-        
-      } catch (error) {
-        return preconditionFailed(error);
-      }
-    }
-  },
+  }
 ];
 
 export default accountRoutes;

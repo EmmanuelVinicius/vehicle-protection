@@ -1,6 +1,5 @@
-import { internal, preconditionFailed } from '@hapi/boom';
+import { conflict, internal, notFound } from '@hapi/boom';
 import { getRepository } from 'typeorm';
-import { Account } from '../entity/Account';
 import { Document } from '../entity/Document';
 import { User } from '../entity/User';
 
@@ -33,8 +32,18 @@ const userRoutes = [
     handler: async (request, headers) => {
       try {
         const data = request.payload;
+        
+        const exists = await getRepository(User).find({ where: { cpf: data.cpf } })
+        if (exists.length > 0) return conflict("User already exists");
+        
+        const documents = await getRepository(Document).findByIds(data.documents)
+        .then(res => {
+          if (res.length < 1) throw notFound("doc not found");
 
-        const user = await getRepository(User).save(data);
+          return res;
+        });
+        
+        const user = await getRepository(User).save({ ...data, documents });
 
         return user;
       } catch (error) {
@@ -52,7 +61,12 @@ const userRoutes = [
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const user = await getRepository(User).findOneOrFail(id, { relations: ['account', 'documents'] });
+        const user = await getRepository(User).findOne(id, { relations: ['account', 'documents'] })
+        .then(res => {
+          if (typeof res == 'undefined') return notFound("user not found");
+
+          return res;
+        });
 
         return user;
         
@@ -95,26 +109,7 @@ const userRoutes = [
         return upd;
         
       } catch (error) {
-        return preconditionFailed();
-      }
-    }
-  },
-  {
-    path: '/user/{id}',
-    method: 'DELETE',
-    config: {
-      cors: true,
-      description: 'Remove an user',
-    },
-    handler: async (request, headers) => {
-      try {
-        const id = request.params.id;
-        const user = await getRepository(User).delete(id);
-        
-        return user;
-        
-      } catch (error) {
-        return preconditionFailed(error);
+        return internal(error);
       }
     }
   },

@@ -1,7 +1,6 @@
-import { internal, notFound, preconditionFailed } from '@hapi/boom';
+import { internal, notFound } from '@hapi/boom';
 import { getRepository } from 'typeorm';
 import { Accident } from '../entity/Accident';
-import { Document } from '../entity/Document';
 import { User } from '../entity/User';
 import { Vehicle } from '../entity/Vehicle';
 
@@ -15,10 +14,10 @@ const accidentRoutes = [
     },
     handler: async (request, headers) => {
       try {
-        const accidents = await getRepository(Accident).find({ relations: ['documents', 'users', 'vehicles']});
-
+        const accidents = await getRepository(Accident).find({ relations: ['users', 'vehicles']});
+        
         return accidents;
-
+        
       } catch (error) {
         return internal(error);
       }
@@ -34,31 +33,25 @@ const accidentRoutes = [
     handler: async (request, headers) => {
       try {
         const data = request.payload;
-
-        const documents = await getRepository(Document).findByIds(data.documents)
-        .then(res => {
-          if (res.length < 1) throw notFound("doc not found");
-
-          return res;
-        });
+        
         const users = await getRepository(User).findByIds(data.users)
         .then(res => {
-          if (res.length < 1) throw notFound("user not found");
-
+          if (res.length < 1) return notFound("user not found");
+          
           return res;
         });
         const vehicles = await getRepository(Vehicle).findByIds(data.vehicles)
         .then(res => {
-          if (res.length < 1) throw notFound("vehicle not found");
-
+          if (res.length < 1) return notFound("vehicle not found");
+          
           return res;
         });
-
-        const accident = await getRepository(Accident).save({ ...data, documents, users, vehicles});
-
+        
+        const accident = await getRepository(Accident).save({ ...data, users, vehicles});
+        
         return accident;
       } catch (error) {
-        return preconditionFailed(error);
+        return internal(error);
       }
     }
   },
@@ -72,8 +65,13 @@ const accidentRoutes = [
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const accident = await getRepository(Accident).findOneOrFail(id, { relations: ['documents', 'users', 'vehicles']});
-
+        const accident = await getRepository(Accident).findOne(id, { relations: ['users', 'vehicles']})
+        .then(res => {
+          if (typeof res == 'undefined') return notFound("accident not found");
+          
+          return res;
+        });
+        
         return accident;
         
       } catch (error) {
@@ -92,24 +90,9 @@ const accidentRoutes = [
       try {
         const id = request.params.id;
         const data = request.payload;
-
+        
         const accident = await getRepository(Accident).findOneOrFail(id);
-
-        if (data.documents) {
-          const actualDocuments = await getRepository(Accident)
-          .createQueryBuilder()
-          .relation(Accident, 'documents')
-          .of(accident).loadMany();
-          
-          await getRepository(Accident)
-          .createQueryBuilder()
-          .relation(Accident, 'documents')
-          .of(accident)
-          .addAndRemove(data.documents, actualDocuments);
-          
-          delete data.documents;
-        }
-
+        
         if (data.users) {
           const actualUsers = await getRepository(Accident)
           .createQueryBuilder()
@@ -124,7 +107,7 @@ const accidentRoutes = [
           
           delete data.users;
         }
-
+        
         if (data.vehicles) {
           const actualVehicles = await getRepository(Accident)
           .createQueryBuilder()
@@ -141,32 +124,13 @@ const accidentRoutes = [
         }
         const upd = await getRepository(Accident).update(id, data)
         
-        return accident;
+        return upd;
         
       } catch (error) {
-        return preconditionFailed(error);
+        return internal(error);
       }
     }
-  },
-  {
-    path: '/accident/{id}',
-    method: 'DELETE',
-    config: {
-      cors: true,
-      description: 'Remove an accident',
-    },
-    handler: async (request, headers) => {
-      try {
-        const id = request.params.id;
-        const accident = await getRepository(Accident).delete(id);
-        
-        return accident;
-        
-      } catch (error) {
-        return preconditionFailed(error);
-      }
-    }
-  },
+  }
 ];
 
 export default accidentRoutes;

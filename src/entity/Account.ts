@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from "typeorm";
 import { User } from "./User";
 
 @Entity()
@@ -21,7 +29,8 @@ export class Account {
   @Column('boolean', { default: true })
   active: boolean = true;
 
-  @OneToOne(() => User, { cascade: true, onDelete: "CASCADE", nullable: false })
+  @OneToOne(() => User,
+  { cascade: true, onDelete: "CASCADE", nullable: false })
   @JoinColumn()
   user: User;
 }

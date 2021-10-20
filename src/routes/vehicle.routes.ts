@@ -1,6 +1,5 @@
-import { internal, preconditionFailed } from '@hapi/boom';
+import { internal, notFound } from '@hapi/boom';
 import { getRepository } from 'typeorm';
-import { Document } from '../entity/Document';
 import { User } from '../entity/User';
 import { Vehicle } from '../entity/Vehicle';
 
@@ -17,7 +16,7 @@ const vehicleRoutes = [
     },
     handler: async (request, headers) => {
       try {
-        const vehicles = await getRepository(Vehicle).find({ relations: ['user', 'documents']});
+        const vehicles = await getRepository(Vehicle).find({ relations: ['user']});
         
         return vehicles;
         
@@ -40,14 +39,12 @@ const vehicleRoutes = [
       try {
         const data = request.payload;
         
-        const documents = await getRepository(Document).findByIds(data.documents);
         const user = await getRepository(User).findOneOrFail({ where: { id: data.user } });
-        
-        const vehicle = await getRepository(Vehicle).save({ ...data, documents, user });
+        const vehicle = await getRepository(Vehicle).save({ ...data, user });
         
         return vehicle;
       } catch (error) {
-        return preconditionFailed(error);
+        return internal(error);
       }
     }
   },
@@ -64,7 +61,12 @@ const vehicleRoutes = [
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const vehicle = await getRepository(Vehicle).findOneOrFail(id, { relations: ['user', 'documents']});
+        const vehicle = await getRepository(Vehicle).findOne(id, { relations: ['user']})
+        .then(res => {
+          if (typeof res == 'undefined') return notFound("vehicle not found");
+
+          return res;
+        });
         
         return vehicle;
         
@@ -88,46 +90,7 @@ const vehicleRoutes = [
         const id = request.params.id;
         const data = request.payload;
         
-        const vehicle = await getRepository(Vehicle).findOneOrFail(id);
-        
-        if (data.documents) {
-          const actualDocuments = await getRepository(Vehicle)
-          .createQueryBuilder()
-          .relation(Vehicle, 'documents')
-          .of(vehicle).loadMany();
-          
-          await getRepository(Vehicle)
-          .createQueryBuilder()
-          .relation(Vehicle, 'documents')
-          .of(vehicle)
-          .addAndRemove(data.documents, actualDocuments);
-          
-          delete data.documents;
-        }
-        
-        const upd = await getRepository(Vehicle).update(id, data)
-        
-        return upd;
-        
-      } catch (error) {
-        return preconditionFailed(error);
-      }
-    }
-  },
-  {
-    path: '/vehicle/{id}',
-    method: 'DELETE',
-    config: {
-      cors: true,
-      description: 'Remove a vehicle',
-      validate: {
-        failAction: () => internal(),
-      }
-    },
-    handler: async (request, headers) => {
-      try {
-        const id = request.params.id;
-        const vehicle = await getRepository(Vehicle).delete(id);
+        const vehicle = await getRepository(Vehicle).update(id, data)
         
         return vehicle;
         

@@ -4,7 +4,7 @@
    "description": "Just a simple system about vehicle protections using Typescript, HapiJS, TypeORM, PostgresSQL and Jest",
    "main": "index.js",
    "scripts": {
-      "test": "jest ./tests",
+      "test": "jest --runInBand ./tests",
       "start": "ts-node src/index.ts"
    },
    "repository": {
