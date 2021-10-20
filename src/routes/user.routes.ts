@@ -1,6 +1,7 @@
-import { internal } from '@hapi/boom';
-import * as Joi from '@hapi/joi';
+import { internal, preconditionFailed } from '@hapi/boom';
 import { getRepository } from 'typeorm';
+import { Account } from '../entity/Account';
+import { Document } from '../entity/Document';
 import { User } from '../entity/User';
 
 const userRoutes = [
@@ -10,13 +11,10 @@ const userRoutes = [
     config: {
       cors: true,
       description: 'List of all users',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
-        const users = await getRepository(User).find();
+        const users = await getRepository(User).find({ relations: ['account', 'documents'] });
 
         return users;
 
@@ -31,13 +29,11 @@ const userRoutes = [
     config: {
       cors: true,
       description: 'Create an user',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const data = request.payload;
+
         const user = await getRepository(User).save(data);
 
         return user;
@@ -52,14 +48,11 @@ const userRoutes = [
     config: {
       cors: true,
       description: 'Get only one user',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const user = await getRepository(User).find(id);
+        const user = await getRepository(User).findOneOrFail(id, { relations: ['account', 'documents'] });
 
         return user;
         
@@ -74,33 +67,44 @@ const userRoutes = [
     config: {
       cors: true,
       description: 'Update an user',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
         const data = request.payload;
+
+        const user = await getRepository(User).findOneOrFail(id);
+
+        if (data.documents) {
+          const actualDocuments = await getRepository(User)
+          .createQueryBuilder()
+          .relation(User, 'documents')
+          .of(user).loadMany();
+          
+          await getRepository(User)
+          .createQueryBuilder()
+          .relation(User, 'documents')
+          .of(user)
+          .addAndRemove(data.documents, actualDocuments);
+          
+          delete data.documents;
+        }
         
-        const user = await getRepository(User).update(id, data)
+        const upd = await getRepository(User).update(id, data)
         
-        return user;
+        return upd;
         
       } catch (error) {
-        return internal(error);
+        return preconditionFailed();
       }
     }
   },
   {
-    path: '/user',
+    path: '/user/{id}',
     method: 'DELETE',
     config: {
       cors: true,
       description: 'Remove an user',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
@@ -110,7 +114,7 @@ const userRoutes = [
         return user;
         
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },

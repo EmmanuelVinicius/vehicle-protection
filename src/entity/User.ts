@@ -8,14 +8,17 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column('varchar')
   firstName: string;
 
-  @Column()
+  @Column('varchar')
   lastName: string;
 
-  @Column()
+  @Column('int')
   age: number;
+
+  @Column('boolean', { default: true })
+  active: boolean = true;
 
   @OneToOne(() => Account)
   @JoinColumn()
@@ -23,9 +26,9 @@ export class User {
 
   @OneToMany(() => Document, document => document.user)
   @JoinColumn()
-  document: Document;
+  documents: Document[];
 
-  @ManyToMany(() => Accident)
+  @ManyToMany(() => Accident, accident => accident.users, { nullable: false, cascade: true, onDelete: "CASCADE" })
   @JoinTable()
-  accident: Accident
+  accidents: Accident
 }

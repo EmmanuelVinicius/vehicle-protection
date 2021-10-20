@@ -4,19 +4,19 @@
    "description": "Just a simple system about vehicle protections using Typescript, HapiJS, TypeORM, PostgresSQL and Jest",
    "main": "index.js",
    "scripts": {
-      "test": "jest",
+      "test": "jest ./tests",
       "start": "ts-node src/index.ts"
    },
    "repository": {
       "type": "git",
       "url": "git+https://github.com/EmmanuelVinicius/vehicle-protection.git"
-    },
-    "author": "",
-    "license": "ISC",
-    "bugs": {
+   },
+   "author": "",
+   "license": "ISC",
+   "bugs": {
       "url": "https://github.com/EmmanuelVinicius/vehicle-protection/issues"
-    },
-    "homepage": "https://github.com/EmmanuelVinicius/vehicle-protection#readme",
+   },
+   "homepage": "https://github.com/EmmanuelVinicius/vehicle-protection#readme",
    "dependencies": {
       "@hapi/boom": "^9.1.4",
       "@hapi/hapi": "^20.2.1",
@@ -27,6 +27,7 @@
    },
    "devDependencies": {
       "@babel/core": "^7.15.8",
+      "@babel/plugin-proposal-decorators": "^7.15.8",
       "@babel/preset-env": "^7.15.8",
       "@babel/preset-typescript": "^7.15.0",
       "@types/jest": "^27.0.2",

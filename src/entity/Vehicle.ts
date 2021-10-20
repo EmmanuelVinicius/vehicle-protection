@@ -8,24 +8,10 @@ export class Vehicle {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  userId: number;
-
-  @OneToOne(() => User)
-  @JoinColumn()
-  user: User;
-  
-  @Column()
-  documentId: number;
-  
-  @OneToMany(() => Document, document => document.vehicle)
-  @JoinColumn()
-  document: Document;
-  
-  @Column()
+  @Column('varchar')
   licensePlate: string;
   
-  @Column()
+  @Column('varchar')
   model: string;
 
   @CreateDateColumn()
@@ -34,10 +20,18 @@ export class Vehicle {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column()
-  active: boolean;
+  @Column('boolean', { default: true })
+  active: boolean = true;
 
-  @ManyToMany(() => Accident)
+  @ManyToMany(() => Accident, accident => accident.vehicles, { nullable: false, cascade: true, onDelete: "CASCADE" })
   @JoinTable()
-  accident: Accident
+  accidents: Accident
+
+  @OneToMany(() => Document, document => document.vehicle)
+  @JoinColumn()
+  documents: Document[];
+
+  @OneToOne(() => User, { nullable: false, cascade: true, onDelete: "CASCADE" })
+  @JoinColumn()
+  user: User;
 }

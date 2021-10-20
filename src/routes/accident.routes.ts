@@ -1,7 +1,9 @@
-import { internal, preconditionFailed } from '@hapi/boom';
-import * as Joi from '@hapi/joi';
+import { internal, notFound, preconditionFailed } from '@hapi/boom';
 import { getRepository } from 'typeorm';
 import { Accident } from '../entity/Accident';
+import { Document } from '../entity/Document';
+import { User } from '../entity/User';
+import { Vehicle } from '../entity/Vehicle';
 
 const accidentRoutes = [
   {
@@ -10,13 +12,10 @@ const accidentRoutes = [
     config: {
       cors: true,
       description: 'List of all accidents',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
-        const accidents = await getRepository(Accident).find({ relations: ['document', 'user', 'vehicle']});
+        const accidents = await getRepository(Accident).find({ relations: ['documents', 'users', 'vehicles']});
 
         return accidents;
 
@@ -31,22 +30,35 @@ const accidentRoutes = [
     config: {
       cors: true,
       description: 'Create an accident',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const data = request.payload;
-        // const vehicle = 
-        // if (!data.vehicle)
-        //   return preconditionFailed();
-          
-        const accident = await getRepository(Accident).save(data);
+
+        const documents = await getRepository(Document).findByIds(data.documents)
+        .then(res => {
+          if (res.length < 1) throw notFound("doc not found");
+
+          return res;
+        });
+        const users = await getRepository(User).findByIds(data.users)
+        .then(res => {
+          if (res.length < 1) throw notFound("user not found");
+
+          return res;
+        });
+        const vehicles = await getRepository(Vehicle).findByIds(data.vehicles)
+        .then(res => {
+          if (res.length < 1) throw notFound("vehicle not found");
+
+          return res;
+        });
+
+        const accident = await getRepository(Accident).save({ ...data, documents, users, vehicles});
 
         return accident;
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },
@@ -56,14 +68,11 @@ const accidentRoutes = [
     config: {
       cors: true,
       description: 'Get only one accident',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const accident = await getRepository(Accident).find(id);
+        const accident = await getRepository(Accident).findOneOrFail(id, { relations: ['documents', 'users', 'vehicles']});
 
         return accident;
         
@@ -78,33 +87,73 @@ const accidentRoutes = [
     config: {
       cors: true,
       description: 'Update an accident',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
         const data = request.payload;
-        
-        const accident = await getRepository(Accident).update(id, data)
+
+        const accident = await getRepository(Accident).findOneOrFail(id);
+
+        if (data.documents) {
+          const actualDocuments = await getRepository(Accident)
+          .createQueryBuilder()
+          .relation(Accident, 'documents')
+          .of(accident).loadMany();
+          
+          await getRepository(Accident)
+          .createQueryBuilder()
+          .relation(Accident, 'documents')
+          .of(accident)
+          .addAndRemove(data.documents, actualDocuments);
+          
+          delete data.documents;
+        }
+
+        if (data.users) {
+          const actualUsers = await getRepository(Accident)
+          .createQueryBuilder()
+          .relation(Accident, 'users')
+          .of(accident).loadMany();
+          
+          await getRepository(Accident)
+          .createQueryBuilder()
+          .relation(Accident, 'users')
+          .of(accident)
+          .addAndRemove(data.users, actualUsers);
+          
+          delete data.users;
+        }
+
+        if (data.vehicles) {
+          const actualVehicles = await getRepository(Accident)
+          .createQueryBuilder()
+          .relation(Accident, 'vehicles')
+          .of(accident).loadMany();
+          
+          await getRepository(Accident)
+          .createQueryBuilder()
+          .relation(Accident, 'vehicles')
+          .of(accident)
+          .addAndRemove(data.vehicles, actualVehicles);
+          
+          delete data.vehicles;
+        }
+        const upd = await getRepository(Accident).update(id, data)
         
         return accident;
         
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },
   {
-    path: '/accident',
+    path: '/accident/{id}',
     method: 'DELETE',
     config: {
       cors: true,
       description: 'Remove an accident',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
@@ -114,7 +163,7 @@ const accidentRoutes = [
         return accident;
         
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },

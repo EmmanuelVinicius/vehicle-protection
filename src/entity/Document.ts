@@ -8,17 +8,10 @@ export class Document {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  userId: number;
-
-  @ManyToOne(() => User)
-  @JoinColumn()
-  user: User;
-
-  @Column()
+  @Column('varchar')
   documentType: string;
 
-  @Column()
+  @Column('varchar')
   documentFile: string;
 
   @CreateDateColumn()
@@ -27,14 +20,18 @@ export class Document {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column()
-  active: boolean;
+  @Column('boolean', { default: true })
+  active: boolean = true;
 
-  @ManyToMany(() => Accident)
+  @ManyToOne(() => Accident, accident => accident.documents, { nullable: false, cascade: true, onDelete: "CASCADE" })
   @JoinTable()
   accident: Accident
 
-  @ManyToOne(() => Vehicle)
+  @ManyToOne(() => Vehicle, vehicle => vehicle.documents)
   @JoinColumn()
   vehicle: Vehicle;
+
+  @ManyToOne(() => User, user => user.documents, { nullable: false })
+  @JoinColumn()
+  user: User;
 }

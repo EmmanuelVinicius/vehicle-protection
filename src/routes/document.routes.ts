@@ -1,7 +1,7 @@
-import { internal } from '@hapi/boom';
-import * as Joi from '@hapi/joi';
+import { internal, preconditionFailed } from '@hapi/boom';
 import { getRepository } from 'typeorm';
 import { Document } from '../entity/Document';
+import { User } from '../entity/User';
 
 const documentRoutes = [
   {
@@ -10,16 +10,13 @@ const documentRoutes = [
     config: {
       cors: true,
       description: 'List of all documents',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const documents = await getRepository(Document).find();
-
+        
         return documents;
-
+        
       } catch (error) {
         return internal(error);
       }
@@ -31,18 +28,17 @@ const documentRoutes = [
     config: {
       cors: true,
       description: 'Create a document',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const data = request.payload;
-        const document = await getRepository(Document).save(data);
-
+        
+        const user = await getRepository(User).findOneOrFail({ where: { id: data.user } });
+        const document = await getRepository(Document).save({ ...data, user });
+        
         return document;
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },
@@ -52,15 +48,12 @@ const documentRoutes = [
     config: {
       cors: true,
       description: 'Get only one document',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const document = await getRepository(Document).find(id);
-
+        const document = await getRepository(Document).findOneOrFail(id);
+        
         return document;
         
       } catch (error) {
@@ -74,9 +67,6 @@ const documentRoutes = [
     config: {
       cors: true,
       description: 'Update a document',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {
@@ -88,19 +78,16 @@ const documentRoutes = [
         return document;
         
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },
   {
-    path: '/document',
+    path: '/document/{id}',
     method: 'DELETE',
     config: {
       cors: true,
       description: 'Remove a document',
-      validate: {
-        failAction: () => internal(),
-      }
     },
     handler: async (request, headers) => {
       try {

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { Document } from "./Document";
 import { User } from "./User";
 import { Vehicle } from "./Vehicle";
@@ -8,14 +8,14 @@ export class Accident {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column('varchar')
   description: string;
   
-  @Column()
+  @Column('varchar')
   locale: string;
   
-  @Column()
-  timestamp: string;
+  @Column('timestamp')
+  timestamp: Date;
   
   @CreateDateColumn()
   createdAt: Date;
@@ -23,18 +23,18 @@ export class Accident {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column()
-  active: boolean;
+  @Column('boolean', { default: true })
+  active: boolean = true;
 
-  @ManyToMany(() => Document)
+  @OneToMany(() => Document, document => document.accident)
   @JoinTable()
-  document: Document;
+  documents: Document[];
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, document => document.accidents)
   @JoinTable()
-  user: User;
+  users: User[];
 
-  @ManyToMany(() => Vehicle)
+  @ManyToMany(() => Vehicle, document => document.accidents,)
   @JoinTable()
-  vehicle: Vehicle;
+  vehicles: Vehicle[];
 }

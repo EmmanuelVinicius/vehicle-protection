@@ -6,17 +6,10 @@ export class Account {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  userId: number;
-
-  @OneToOne(() => User)
-  @JoinColumn()
-  user: User;
-  
-  @Column()
+  @Column('varchar')
   username: string;
 
-  @Column()
+  @Column('varchar')
   password: string;
   
   @CreateDateColumn()
@@ -25,6 +18,10 @@ export class Account {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column()
-  active: boolean;
+  @Column('boolean', { default: true })
+  active: boolean = true;
+
+  @OneToOne(() => User, { cascade: true, onDelete: "CASCADE", nullable: false })
+  @JoinColumn()
+  user: User;
 }

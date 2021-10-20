@@ -1,7 +1,8 @@
-import { internal } from '@hapi/boom';
+import { internal, preconditionFailed } from '@hapi/boom';
 import * as Joi from '@hapi/joi';
 import { getRepository } from 'typeorm';
 import { Account } from '../entity/Account';
+import { User } from '../entity/User';
 
 const accountRoutes = [
   {
@@ -16,7 +17,7 @@ const accountRoutes = [
     },
     handler: async (request, headers) => {
       try {
-        const accounts = await getRepository(Account).find();
+        const accounts = await getRepository(Account).find({ relations: ['user'] });
 
         return accounts;
 
@@ -38,11 +39,13 @@ const accountRoutes = [
     handler: async (request, headers) => {
       try {
         const data = request.payload;
-        const account = await getRepository(Account).save(data);
+
+        const user = await getRepository(User).findOneOrFail({ where: { id: data.user } });
+        const account = await getRepository(Account).save({ ...data, user });
 
         return account;
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },
@@ -59,7 +62,7 @@ const accountRoutes = [
     handler: async (request, headers) => {
       try {
         const id = request.params.id;
-        const account = await getRepository(Account).find(id);
+        const account = await getRepository(Account).findOneOrFail({ relations: ['user'] });
 
         return account;
         
@@ -93,7 +96,7 @@ const accountRoutes = [
     }
   },
   {
-    path: '/account',
+    path: '/account/{id}',
     method: 'DELETE',
     config: {
       cors: true,
@@ -110,7 +113,7 @@ const accountRoutes = [
         return account;
         
       } catch (error) {
-        return internal(error);
+        return preconditionFailed(error);
       }
     }
   },
